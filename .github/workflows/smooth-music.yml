@@ -27,9 +27,12 @@ jobs:
             exit 1
           }
 
-           - name: Smooth harsh high frequencies
+      - name: Smooth harsh high frequencies
         run: |
           ffmpeg -y -i "Forgotten_Halls.wav" \
+            -af "equalizer=f=6500:t=q:w=1:g=-2.5:enable='gte(t,15.5)',equalizer=f=9000:t=q:w=1:g=-1.5:enable='gte(t,15.5)'" \
+            -c:a pcm_s24le \
+            "Forgotten_Halls_Smoothed.wav"
             -af "aeval='if(lt(t,15.5),val(ch),0.891250938*val(ch))':c=same" \
             -c:a pcm_s24le \
             "Forgotten_Halls_Smoothed.wav"
