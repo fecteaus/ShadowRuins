@@ -1,0 +1,44 @@
+
+name: Smooth Forgotten Halls
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  smooth-audio:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Verify source audio
+        run: |
+          test -f "Forgotten_Halls.wav" || {
+            echo "Forgotten_Halls.wav was not found in the repository root."
+            exit 1
+          }
+
+      - name: Smooth harsh high frequencies
+        run: |
+          ffmpeg -y -i "Forgotten_Halls.wav" \
+            -af "equalizer=f=6500:t=q:w=1:g=-2.5,equalizer=f=9000:t=q:w=1:g=-1.5" \
+            -c:a pcm_s24le \
+            "Forgotten_Halls_Smoothed.wav"
+
+      - name: Create review branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "audio-review-${GITHUB_RUN_NUMBER}"
+          git add "Forgotten_Halls_Smoothed.wav"
+          git commit -m "Add smoothed Forgotten Halls audio"
+          git push origin "audio-review-${GITHUB_RUN_NUMBER}"
